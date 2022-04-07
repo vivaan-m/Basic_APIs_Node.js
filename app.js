@@ -17,6 +17,7 @@ const crypto = require('crypto');
 const app = express();
 
 app.set('view engine', 'ejs');
+app.use(express.static('public'));
 database.connect();
 app.use(express.json());
 
@@ -28,14 +29,14 @@ app.post('/register', async (req, res) => {
         const { first_name, last_name, email, password } = req.body;
 
         if (!(email && first_name && last_name && password)) {
-            res.status(400).end("All Field Are Required");
+            res.status(400).json({mssg:"All Field Are Required"});
             return
         }
         const oldUser = await User.find({ email });
 
         if (oldUser.length > 0) {
             console.log(oldUser)
-            res.status(400).end("User already Exist");
+            res.status(400).json({mssg:"User already Exist"});
             return
         }
 
@@ -70,7 +71,7 @@ app.post('/login', async (req, res) => {
         const { email, password } = req.body;
 
         if (!(email && password)) {
-            res.status(400).send("All input is required");
+            res.status(400).json({mssg:"All input is required"});
             return
         }
         const user = await User.findOne({ email });
@@ -83,7 +84,7 @@ app.post('/login', async (req, res) => {
             return
         }
 
-        res.status(400).send("Invalid Credentials");
+        res.status(400).json({mssg:"Invalid Credentials"});
 
 
 
@@ -118,10 +119,10 @@ app.post('/forgotPassword', async (req, res) => {
         const link = `${process.env.BASE_URL}password-reset/${user[0]._id}/${token.token}`;
         console.log(link);
         sendMail(email, "Password reset", link)
-        return res.status(400).send("Email sent");
+        return res.status(200).json({mssg:"Email sent"})
 
     }
-    res.status(400).send("Email Does Not Exist");
+    res.status(400).json({mssg:"Email does not exist"})
 })
 
 
@@ -186,6 +187,19 @@ token.delete();
 
 
 
+app.post('/logout/:userid',async (req,res)=>{
+    
+    const user = await User.findOne({_id:req.params.userid});
+if(!user) return res.status(400).send("User Does not exist");
+    user.token = null;
+    user.save();
+    console.log(user);
+    res.status(200).json({mssg:"Logged-Out"})
+
+
+})
+
+
 
 
 
@@ -200,6 +214,7 @@ app.post('/delete', async (req, res) => {
 
 
 app.post("/welcome", auth, (req, res) => {
+    console.log(req.user);
     res.status(200).send("Welcome 🙌 ");
 });
 

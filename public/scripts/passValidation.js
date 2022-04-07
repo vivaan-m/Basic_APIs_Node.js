@@ -1,4 +1,4 @@
-
+$(document).ready(function(){
 	var $password = $("#password");
 	var $confirmPass = $("#confirm_password");
 
@@ -51,4 +51,4 @@
 	// 		return false;
 	// 	}
 	// }
-
+});
